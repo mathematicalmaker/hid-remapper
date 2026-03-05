@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+set(PICO_BOARD waveshare_rp2040_zero)
+
 add_subdirectory(usb_midi_host)
 
 add_compile_definitions(PICO_DEFAULT_UART_BAUD_RATE=921600)
@@ -13,7 +15,6 @@ set(PICO_BOARD_HEADER_DIRS "${CMAKE_CURRENT_LIST_DIR}/src/boards")
 
 include(pico_sdk_import.cmake)
 
-set(PICO_BOARD waveshare_rp2040_zero)
 project(remapper)
 
 pico_sdk_init()
