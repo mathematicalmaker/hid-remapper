@@ -13,6 +13,7 @@ set(PICO_BOARD_HEADER_DIRS "${CMAKE_CURRENT_LIST_DIR}/src/boards")
 
 include(pico_sdk_import.cmake)
 
+set(PICO_BOARD waveshare_rp2040_zero)
 project(remapper)
 
 pico_sdk_init()
