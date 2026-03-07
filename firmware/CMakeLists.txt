@@ -1,3 +1,17 @@
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.2.0)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.2.0-a4)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 cmake_minimum_required(VERSION 3.13)
 
 set(PICO_BOARD waveshare_rp2040_zero)
@@ -45,6 +59,7 @@ add_executable(remapper
     src/out_report.cc
     src/tick.cc
     src/activity_led.cc
+    src/led_driver.cc
     src/ps_auth.cc
     src/app_driver.cc
     src/xbox.cc
@@ -54,6 +69,10 @@ if((PICO_BOARD STREQUAL "pico") OR (PICO_BOARD STREQUAL "pico2"))
 target_compile_definitions(remapper PUBLIC PICO_DEFAULT_UART_TX_PIN=16)
 target_compile_definitions(remapper PUBLIC PICO_DEFAULT_UART_RX_PIN=17)
 target_compile_definitions(remapper PUBLIC PICO_DEFAULT_PIO_USB_DP_PIN=0)
+endif()
+if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+pico_generate_pio_header(remapper ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
+target_compile_definitions(remapper PRIVATE REMAPPER_WS2812_COLOR_GRB=0xff0000)
 endif()
 
 target_include_directories(remapper PRIVATE
@@ -103,6 +122,7 @@ add_executable(remapper_dual_a
     src/serial.cc
     src/tick.cc
     src/activity_led.cc
+    src/led_driver.cc
     src/pico_debug/swd.c
     src/pico_debug/flash.c
     src/pico_debug/adi.c
@@ -111,6 +131,15 @@ add_executable(remapper_dual_a
     $<$<STREQUAL:${PICO_BOARD},remapper_v7>:src/i2c.cc>
     $<$<STREQUAL:${PICO_BOARD},remapper_v7>:src/mcp4651.cc>
 )
+if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+target_compile_definitions(remapper_dual_a PRIVATE
+    SERIAL_TX_PIN=4
+    SERIAL_RX_PIN=5
+    SERIAL_CTS_PIN=6
+    SERIAL_RTS_PIN=7
+    REMAPPER_WS2812_COLOR_GRB=0xa5ff00
+)
+endif()
 target_include_directories(remapper_dual_a PRIVATE
     src
     src/tusb_config_device
@@ -126,6 +155,9 @@ target_link_libraries(remapper_dual_a
     pico_unique_id
 )
 pico_generate_pio_header(remapper_dual_a ${CMAKE_CURRENT_LIST_DIR}/src/pico_debug/swd.pio)
+if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+pico_generate_pio_header(remapper_dual_a ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
+endif()
 pico_add_extra_outputs(remapper_dual_a)
 
 add_executable(remapper_dual_b
@@ -135,6 +167,7 @@ add_executable(remapper_dual_b
     src/serial.cc
     src/out_report.cc
     src/activity_led.cc
+    src/led_driver.cc
     src/app_driver.cc
     src/xbox.cc
 )
@@ -142,8 +175,19 @@ target_include_directories(remapper_dual_b PRIVATE
     src
     src/tusb_config_host
 )
+if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+target_compile_definitions(remapper_dual_b PRIVATE
+    SERIAL_TX_PIN=4
+    SERIAL_RX_PIN=5
+    SERIAL_CTS_PIN=6
+    SERIAL_RTS_PIN=7
+    REMAPPER_WS2812_COLOR_GRB=0x4b0082
+)
+pico_generate_pio_header(remapper_dual_b ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
+endif()
 target_link_libraries(remapper_dual_b
     pico_stdlib
+    hardware_pio
     tinyusb_host
     tinyusb_board
     usb_midi_host
@@ -172,16 +216,22 @@ add_executable(remapper_serial
     src/interval_override.cc
     src/tick.cc
     src/activity_led.cc
+    src/led_driver.cc
     src/ps_auth.cc
 )
 target_include_directories(remapper_serial PRIVATE
     src
     src/tusb_config_device
 )
+if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+pico_generate_pio_header(remapper_serial ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
+target_compile_definitions(remapper_serial PRIVATE REMAPPER_WS2812_COLOR_GRB=0xff0000)
+endif()
 target_link_libraries(remapper_serial
     pico_stdlib
     pico_unique_id
     hardware_flash
+    hardware_pio
     tinyusb_device
     tinyusb_board
 )
