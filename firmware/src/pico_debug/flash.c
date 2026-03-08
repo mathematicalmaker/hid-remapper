@@ -156,6 +156,30 @@ int rp2040_add_flash_bit(uint32_t offset, const uint8_t *src, int size) {
     return 0;
 }
 
+/* RP2040 target register addresses (for writing via SWD to the B board). */
+#define RP2040_WATCHDOG_BASE      0x40058000u
+#define RP2040_PSM_BASE           0x40010000u
+#define RP2040_REG_ALIAS_CLR      0x3000u
+#define RP2040_REG_ALIAS_SET      0x2000u
+#define RP2040_WATCHDOG_CTRL      0u
+#define RP2040_WATCHDOG_SCRATCH4  0x1cu
+#define RP2040_PSM_WDSEL          0x08u
+#define RP2040_WDOG_CTRL_ENABLE   0x40000000u
+#define RP2040_WDOG_CTRL_PAUSE    0x07000000u  /* JTAG | DBG0 | DBG1 */
+#define RP2040_WDOG_CTRL_TRIGGER  0x80000000u
+#define RP2040_PSM_WDSEL_ROSC     0x01u
+#define RP2040_PSM_WDSEL_XOSC     0x02u
+#define RP2040_PSM_WDSEL_ALL      0x1ffffu
+
+void rp2040_reboot_target(void) {
+    mem_write32(RP2040_WATCHDOG_BASE + RP2040_WATCHDOG_CTRL + RP2040_REG_ALIAS_CLR, RP2040_WDOG_CTRL_ENABLE);
+    mem_write32(RP2040_WATCHDOG_BASE + RP2040_WATCHDOG_SCRATCH4, 0);
+    mem_write32(RP2040_PSM_BASE + RP2040_PSM_WDSEL + RP2040_REG_ALIAS_SET,
+               RP2040_PSM_WDSEL_ALL & ~(RP2040_PSM_WDSEL_ROSC | RP2040_PSM_WDSEL_XOSC));
+    mem_write32(RP2040_WATCHDOG_BASE + RP2040_WATCHDOG_CTRL + RP2040_REG_ALIAS_CLR, RP2040_WDOG_CTRL_PAUSE);
+    mem_write32(RP2040_WATCHDOG_BASE + RP2040_WATCHDOG_CTRL + RP2040_REG_ALIAS_SET, RP2040_WDOG_CTRL_TRIGGER);
+}
+
 // -----------------------------------------------------------------------------------
 // THIS CODE IS DESIGNED TO RUN ON THE TARGET AND WILL BE COPIED OVER 
 // (hence it has it's own section)

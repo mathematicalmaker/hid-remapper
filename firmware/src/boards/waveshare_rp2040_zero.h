@@ -38,9 +38,25 @@
 #define PICO_DEFAULT_UART_RX_PIN 1
 #endif
 
+// --- SWD (probe side only; for combined dual flash when B has SWD exposed) ---
+// Waveshare RP2040-Zero does NOT pin out SWD (see wiki). So as B (target) you
+// cannot use combined flash; flash remapper_dual_b.uf2 to B separately (BOOTSEL).
+// As A (probe) we still define these so flash_b_side builds; they are unused
+// when both boards are Waveshare.
+#ifndef PIN_SWDCLK
+#define PIN_SWDCLK 2
+#endif
+#ifndef PIN_SWDIO
+#define PIN_SWDIO 3
+#endif
+
 // --- WS2812 ---
 #ifndef PICO_DEFAULT_WS2812_PIN
 #define PICO_DEFAULT_WS2812_PIN 16
+#endif
+// Brightness 0–100 (percent). Only used when PICO_DEFAULT_WS2812_PIN is defined.
+#ifndef REMAPPER_WS2812_BRIGHTNESS_PERCENT
+#define REMAPPER_WS2812_BRIGHTNESS_PERCENT 50
 #endif
 
 // --- I2C ---

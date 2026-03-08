@@ -57,8 +57,8 @@ add_executable(remapper
     src/quirks.cc
     src/interval_override.cc
     src/out_report.cc
-    src/tick.cc
     src/activity_led.cc
+    src/tick.cc
     src/led_driver.cc
     src/ps_auth.cc
     src/app_driver.cc
@@ -70,9 +70,11 @@ target_compile_definitions(remapper PUBLIC PICO_DEFAULT_UART_TX_PIN=16)
 target_compile_definitions(remapper PUBLIC PICO_DEFAULT_UART_RX_PIN=17)
 target_compile_definitions(remapper PUBLIC PICO_DEFAULT_PIO_USB_DP_PIN=0)
 endif()
+# WS2812 colors (RGB hex) and brightness are in src/boards/waveshare_rp2040_zero.h (REMAPPER_WS2812_BRIGHTNESS_PERCENT, default 100).
 if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
 pico_generate_pio_header(remapper ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
-target_compile_definitions(remapper PRIVATE REMAPPER_WS2812_COLOR_GRB=0xff0000)
+# Single-board: green activity LED
+target_compile_definitions(remapper PRIVATE REMAPPER_WS2812_COLOR_RGB=0x00ff00)
 endif()
 
 target_include_directories(remapper PRIVATE
@@ -86,8 +88,8 @@ target_link_libraries(remapper
     pico_multicore
     pico_unique_id
     hardware_pio
-    hardware_dma
     hardware_flash
+    hardware_dma
     $<$<STREQUAL:${PICO_BOARD},remapper_v8>:hardware_adc>
     tinyusb_device
     tinyusb_host
@@ -132,12 +134,13 @@ add_executable(remapper_dual_a
     $<$<STREQUAL:${PICO_BOARD},remapper_v7>:src/mcp4651.cc>
 )
 if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+# Dual A (device / "Out"): reddish orange
 target_compile_definitions(remapper_dual_a PRIVATE
     SERIAL_TX_PIN=4
     SERIAL_RX_PIN=5
     SERIAL_CTS_PIN=6
     SERIAL_RTS_PIN=7
-    REMAPPER_WS2812_COLOR_GRB=0xa5ff00
+    REMAPPER_WS2812_COLOR_RGB=0xff5000
 )
 endif()
 target_include_directories(remapper_dual_a PRIVATE
@@ -176,12 +179,13 @@ target_include_directories(remapper_dual_b PRIVATE
     src/tusb_config_host
 )
 if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
+# Dual B (host / "In"): indigo
 target_compile_definitions(remapper_dual_b PRIVATE
     SERIAL_TX_PIN=4
     SERIAL_RX_PIN=5
     SERIAL_CTS_PIN=6
     SERIAL_RTS_PIN=7
-    REMAPPER_WS2812_COLOR_GRB=0x4b0082
+    REMAPPER_WS2812_COLOR_RGB=0x4b0082
 )
 pico_generate_pio_header(remapper_dual_b ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
 endif()
@@ -225,7 +229,8 @@ target_include_directories(remapper_serial PRIVATE
 )
 if(PICO_BOARD STREQUAL "waveshare_rp2040_zero")
 pico_generate_pio_header(remapper_serial ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
-target_compile_definitions(remapper_serial PRIVATE REMAPPER_WS2812_COLOR_GRB=0xff0000)
+# Serial variant: green activity LED
+target_compile_definitions(remapper_serial PRIVATE REMAPPER_WS2812_COLOR_RGB=0x00ff00)
 endif()
 target_link_libraries(remapper_serial
     pico_stdlib
@@ -256,6 +261,11 @@ pico_generate_pio_header(flash_b_side ${CMAKE_CURRENT_LIST_DIR}/src/pico_debug/s
 pico_add_extra_outputs(flash_b_side)
 pico_set_binary_type(flash_b_side no_flash)
 
+# remapper_dual_combined.uf2: flash once on the A board; it installs dual_a to flash then
+# runs flash_b_side from RAM to program the B board over SWD. B must expose SWD pins.
+# Waveshare RP2040-Zero does NOT pin out SWD (https://www.waveshare.com/wiki/RP2040-Zero):
+# use remapper_dual_a.uf2 and remapper_dual_b.uf2 separately (flash B via BOOTSEL).
+# For boards that do expose SWD (e.g. Pico): A GP2 -> B GP27 (SWCLK), A GP3 -> B GP26 (SWDIO), GND.
 add_custom_command(
     OUTPUT remapper_dual_combined.uf2
     DEPENDS remapper_dual_a flash_b_side

@@ -49,11 +49,24 @@ void led_driver_init(void) {
 }
 
 void led_driver_set(bool on) {
-#ifndef REMAPPER_WS2812_COLOR_GRB
-#define REMAPPER_WS2812_COLOR_GRB 0xff0000u  /* default green */
+#ifndef REMAPPER_WS2812_COLOR_RGB
+#define REMAPPER_WS2812_COLOR_RGB 0x00ff00u  /* default green (R,G,B) */
 #endif
-    uint32_t grb = on ? (uint32_t)REMAPPER_WS2812_COLOR_GRB : 0u;
-    pio_sm_put_blocking(pio, sm, grb << 8u);
+#ifndef REMAPPER_WS2812_BRIGHTNESS_PERCENT
+#define REMAPPER_WS2812_BRIGHTNESS_PERCENT 100
+#endif
+    uint32_t rgb = on ? (uint32_t)REMAPPER_WS2812_COLOR_RGB : 0u;
+    unsigned pct = (unsigned)REMAPPER_WS2812_BRIGHTNESS_PERCENT;
+    if (pct > 100u) pct = 100u;
+    if (on && pct < 100u) {
+        unsigned r = (rgb >> 16) & 0xffu, g = (rgb >> 8) & 0xffu, b = rgb & 0xffu;
+        r = (r * pct) / 100u;
+        g = (g * pct) / 100u;
+        b = (b * pct) / 100u;
+        rgb = (r << 16) | (g << 8) | b;
+    }
+    /* LED expects RGB byte order (first byte R, then G, then B) */
+    pio_sm_put_blocking(pio, sm, rgb << 8u);
 }
 
 #else

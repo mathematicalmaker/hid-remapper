@@ -1,0 +1,7 @@
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/pioasm.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/edit_cache.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/rebuild_cache.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/list_install_components.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/install.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/install/local.dir
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm/CMakeFiles/install/strip.dir

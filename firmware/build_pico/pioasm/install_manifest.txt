@@ -1,0 +1,5 @@
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm-install/pioasm/pioasm
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm-install/pioasm/pioasmTargets.cmake
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm-install/pioasm/pioasmTargets-release.cmake
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm-install/pioasm/pioasmConfig.cmake
+/home/jason/Dev/Pico/hid-remapper/firmware/build_pico/pioasm-install/pioasm/pioasmConfigVersion.cmake

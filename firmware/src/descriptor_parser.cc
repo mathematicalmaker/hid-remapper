@@ -40,19 +40,22 @@ void mark_usage(
         return;
     }
 
-    (*usage_map)[report_id].try_emplace(usage,
-        (usage_def_t){
-            .report_id = report_id,
-            .size = size,
-            .bitpos = bitpos,
-            .is_relative = is_relative,
-            .is_array = is_array,
-            .logical_minimum = logical_minimum,
-            .logical_maximum = logical_maximum,
-            .index = index,
-            .count = count,
-            .usage_maximum = usage_maximum,
-        });
+    usage_def_t def = {
+        .report_id = report_id,
+        .size = size,
+        .bitpos = bitpos,
+        .is_relative = is_relative,
+        .is_array = is_array,
+        .logical_minimum = logical_minimum,
+        .logical_maximum = logical_maximum,
+        .index = index,
+        .count = count,
+        .usage_maximum = usage_maximum,
+    };
+    // Use insert or assign so that when a usage is repeated (e.g. DragonRise gamepad has
+    // Usage X four times then Usage Y), we use the last occurrence. Some devices put the
+    // real axis data in a later field and earlier ones are padding or unused.
+    (*usage_map)[report_id].insert_or_assign(usage, def);
 }
 
 void assign_interface_index(uint16_t interface) {

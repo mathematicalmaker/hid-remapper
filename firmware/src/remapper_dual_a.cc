@@ -95,7 +95,11 @@ uint32_t get_gpio_valid_pins_mask() {
                                       (1 << SERIAL_TX_PIN) |
                                       (1 << SERIAL_RX_PIN) |
                                       (1 << SERIAL_CTS_PIN) |
-                                      (1 << SERIAL_RTS_PIN));
+                                      (1 << SERIAL_RTS_PIN)
+#ifdef PICO_DEFAULT_WS2812_PIN
+                                      | (1 << PICO_DEFAULT_WS2812_PIN)
+#endif
+                                      );
 }
 
 void read_report(bool* new_report, bool* tick) {
@@ -125,6 +129,7 @@ void flash_b_side() {
 
     rp2040_add_flash_bit(0, dual_b_binary, dual_b_binary_length);
     rp2040_add_flash_bit(0xffffffff, NULL, 0);
+    rp2040_reboot_target();
 }
 
 uint8_t buffer[64 + sizeof(send_out_report_t)];

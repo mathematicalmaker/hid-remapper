@@ -1587,7 +1587,11 @@ inline void monitor_read_input(const uint8_t* report, int len, uint32_t source_u
                 monitor_input_state[source_usage] &= ~(1 << interface_idx);
             }
         } else {
-            if (value != monitor_input_state[source_usage]) {
+            // Send when value changed or when we've never sent this usage (so it appears in the Monitor list
+            // even when at rest, e.g. X axis at 0).
+            auto it = monitor_input_state.find(source_usage);
+            bool never_sent = (it == monitor_input_state.end());
+            if (never_sent || value != it->second) {
                 monitor_usage(source_usage, value, hub_port);
             }
             monitor_input_state[source_usage] = value;
@@ -1676,7 +1680,17 @@ void do_handle_received_report(const uint8_t* report, int len, uint16_t interfac
     }
 
     if (monitor_enabled) {
-        for (auto const& [their_usage, their_usage_def] : their_usages[interface][report_id]) {
+        // Process axes (0x00010030–0x00010039) before other usages so they are not dropped when
+        // the 7-item monitor report is full (e.g. gamepad X/Y with many buttons).
+        std::vector<std::pair<uint32_t, usage_def_t>> monitor_usages(their_usages[interface][report_id].begin(), their_usages[interface][report_id].end());
+        std::sort(monitor_usages.begin(), monitor_usages.end(),
+            [](const std::pair<uint32_t, usage_def_t>& a, const std::pair<uint32_t, usage_def_t>& b) {
+                bool a_axis = (a.first >= 0x00010030u && a.first <= 0x00010039u);
+                bool b_axis = (b.first >= 0x00010030u && b.first <= 0x00010039u);
+                if (a_axis != b_axis) return a_axis;
+                return a.first < b.first;
+            });
+        for (auto const& [their_usage, their_usage_def] : monitor_usages) {
             if (their_usage_def.usage_maximum == 0) {
                 monitor_read_input(report, len, their_usage, their_usage_def, interface_idx, hub_port);
             } else {

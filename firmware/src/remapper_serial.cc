@@ -101,7 +101,11 @@ uint32_t get_gpio_valid_pins_mask() {
 #ifdef SERIAL_MOUSE_RTS_PIN
                                       (1 << SERIAL_MOUSE_RTS_PIN) |
 #endif
-                                      (1 << SERIAL_MOUSE_RX_PIN));
+                                      (1 << SERIAL_MOUSE_RX_PIN)
+#ifdef PICO_DEFAULT_WS2812_PIN
+                                      | (1 << PICO_DEFAULT_WS2812_PIN)
+#endif
+                                      );
 }
 
 void read_report(bool* new_report, bool* tick) {
